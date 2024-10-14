@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+  parking-service:
+    image: ${DOCKER_REGISTRY-}parking-service
+    build:
+      context: .
+      dockerfile: ParkingService/Dockerfile
+    # ports:
+    #     - "52436:80"
+    # networks:
+    #     - cello-network
+
+  payment-service:
+    image: ${DOCKER_REGISTRY-}payment-service
+    build:
+      context: .
+      dockerfile: PaymentService/Dockerfile
+    # ports:
+    #     - "52433:80"
+    # networks:
+    #     - cello-network
+
+  transaction-service:
+    image: ${DOCKER_REGISTRY-}transaction-service
+    build:
+      context: .
+      dockerfile: TransactionService/Dockerfile
+    depends_on:
+      - payment-service
+
