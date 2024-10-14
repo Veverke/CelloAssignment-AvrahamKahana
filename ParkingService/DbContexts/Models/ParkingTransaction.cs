@@ -8,5 +8,10 @@
         public int ParkingLotId { get; set; }
         public DateTime GateOpened { get; set; }
         public DateTime GateClosed { get; set; }
+
+        public override string ToString()
+        {
+            return $"{nameof(Id)}: [{Id}] {nameof(CreationTime)}: [{CreationTime}] {nameof(CustomerId)}: [{CustomerId}] {nameof(ParkingLotId)}: [{ParkingLotId}]  {nameof(GateOpened)}: [{GateOpened}]  {nameof(GateClosed)}: [{GateClosed}]";
+        }
     }
 }
