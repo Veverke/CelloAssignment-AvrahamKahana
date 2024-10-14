@@ -16,7 +16,7 @@ namespace ParkingService.Controllers
         }
 
         [HttpPost]
-        public async Task PostParkingTransaction(ParkingTransaction parkingTransaction)
+        public async Task PostParkingTransaction([FromBody] ParkingTransaction parkingTransaction)
         {
             try
             {

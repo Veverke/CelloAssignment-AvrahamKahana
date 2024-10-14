@@ -10,6 +10,9 @@ services:
     #     - "52436:80"
     # networks:
     #     - cello-network
+    depends_on:
+        - sql-server
+    container_name: parking-service
 
   payment-service:
     image: ${DOCKER_REGISTRY-}payment-service
@@ -20,6 +23,7 @@ services:
     #     - "52433:80"
     # networks:
     #     - cello-network
+    container_name: payment-service
 
   transaction-service:
     image: ${DOCKER_REGISTRY-}transaction-service
@@ -27,5 +31,17 @@ services:
       context: .
       dockerfile: TransactionService/Dockerfile
     depends_on:
-      - payment-service
+        - payment-service
+    container_name: transaction-service
+ 
+  sql-server:
+    image: mcr.microsoft.com/mssql/server:latest
+    environment:
+        - ACCEPT_EULA=Y
+        - SA_PASSWORD=StrongPassword123!
+        - MSSQL_PID=Express
+        - ConnectionStrings__DefaultConnection=Server=sql-server,1433;Database=Cello;User Id=sa;Password=StrongPassword123!;
+    ports:
+        - "1433:1433"
+    container_name: sql-server
 

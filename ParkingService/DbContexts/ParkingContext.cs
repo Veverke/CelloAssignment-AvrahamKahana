@@ -10,7 +10,8 @@ namespace ParkingService.DbContexts
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             //TODO: Move hardcoded settings to appsettings
-            optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Cello;Trusted_Connection=True");
+            //optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Cello;Trusted_Connection=True");
+            optionsBuilder.UseSqlServer(@"Server=sql-server,1433;Database=Cello;User Id=sa;Password=StrongPassword123!;");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
