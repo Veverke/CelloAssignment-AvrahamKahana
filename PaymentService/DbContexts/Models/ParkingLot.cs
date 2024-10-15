@@ -3,7 +3,7 @@
     public class ParkingLot
     {
         public int ParkingLotId { get; set; }
-        public List<double> SpecificTariffsPerFirstHours { get; set; }
+        public List<TariffPerHour> TariffsPerInitialHours { get; set; }
         public double TariffPerAdditionalHour { get; set; }
         public double MaxTariff { get; set; }
         public double MinTariff { get; set; }
@@ -13,7 +13,7 @@
 
         public ParkingLot()
         {
-            SpecificTariffsPerFirstHours = new List<double>();
+            TariffsPerInitialHours = new List<TariffPerHour>();
         }
     }
 }
