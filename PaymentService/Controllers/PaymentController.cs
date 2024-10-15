@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Contracts;
+using Microsoft.AspNetCore.Mvc;
 
 namespace PaymentService.Controllers
 {
@@ -13,10 +14,10 @@ namespace PaymentService.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
-        public IActionResult CalculateParkingCost(int parkingLotId)
+        [HttpPost]
+        public IActionResult CalculateParkingCost([FromBody] ParkingTransactionDto parkingTransaction)
         {
-            return Ok($"Parking lot [{parkingLotId}] cost is: [{0}]");
+            return Ok($"Parking lot [{parkingTransaction.ParkingLotId}] cost is: [{0}]");
         }
     }
 }

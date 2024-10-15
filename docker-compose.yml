@@ -31,6 +31,7 @@ services:
       context: .
       dockerfile: TransactionService/Dockerfile
     depends_on:
+        - parking-service
         - payment-service
     container_name: transaction-service
  

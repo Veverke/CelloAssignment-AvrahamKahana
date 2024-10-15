@@ -7,9 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingService", "ParkingSe
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{3B9989D4-855B-422B-8C74-7FC145DC865F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentService", "PaymentService\PaymentService.csproj", "{7B527170-E21F-4529-B4D8-87CAD794B76D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentService", "PaymentService\PaymentService.csproj", "{7B527170-E21F-4529-B4D8-87CAD794B76D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionService", "TransactionService\TransactionService.csproj", "{FB1FF08A-F25E-43B8-A7B2-EB938ED0BD53}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransactionService", "TransactionService\TransactionService.csproj", "{FB1FF08A-F25E-43B8-A7B2-EB938ED0BD53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{91072C28-A35B-4088-956D-1A73D9A7E176}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Contracts", "..\Contracts\Contracts.csproj", "{F8454EA6-3F15-41A2-B955-C0B70298134D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,14 @@ Global
 		{FB1FF08A-F25E-43B8-A7B2-EB938ED0BD53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB1FF08A-F25E-43B8-A7B2-EB938ED0BD53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB1FF08A-F25E-43B8-A7B2-EB938ED0BD53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91072C28-A35B-4088-956D-1A73D9A7E176}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91072C28-A35B-4088-956D-1A73D9A7E176}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91072C28-A35B-4088-956D-1A73D9A7E176}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91072C28-A35B-4088-956D-1A73D9A7E176}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8454EA6-3F15-41A2-B955-C0B70298134D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8454EA6-3F15-41A2-B955-C0B70298134D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8454EA6-3F15-41A2-B955-C0B70298134D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8454EA6-3F15-41A2-B955-C0B70298134D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

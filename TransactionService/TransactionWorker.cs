@@ -1,5 +1,11 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Common;
+using Contracts;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using System.Net.Http.Json;
+using TransactionService.Settings;
 
 namespace TransactionService
 {
@@ -7,42 +13,76 @@ namespace TransactionService
     {
         private readonly ILogger<TransactionWorker> _logger;
         private readonly HttpClient _httpClient;
-        public TransactionWorker(ILogger<TransactionWorker> logger, HttpClient httpClient)
+        private readonly TransactionWorkerSettings _transactionWorkerSettings;
+        public TransactionWorker(ILogger<TransactionWorker> logger, HttpClient httpClient, IOptions<TransactionWorkerSettings> transactionWorkerSettings)
         {
             _logger = logger;
             _httpClient = httpClient;
+            _transactionWorkerSettings = transactionWorkerSettings?.Value;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            long iteration = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    Console.WriteLine($"Running Worker... iteration: [{++iteration}]");
-                    var response = await _httpClient.GetAsync("http://payment-service/api/Payment/CalculateParkingCost?parkingLotId=5");
-                    if (!response.IsSuccessStatusCode)
+                    var parkingTransactions = await GetParkingTransactions();
+                    //TODO: Parallel foreach
+                    foreach (var parkingTransaction in parkingTransactions)
                     {
-                        var responseError = await response.Content.ReadAsStringAsync();
-                        var errorMessage = $"Http request error: [{(int)response.StatusCode}: {response.StatusCode}] {responseError} uri: [{response.RequestMessage.RequestUri}]";
-                        _logger.LogError(errorMessage);
-
-                        //TODO: move setting to appsettings
-                        await Task.Delay(TimeSpan.FromSeconds(1));
-                        continue;
-
+                        var parkingCost = await CalculateParkingCost(parkingTransaction);
+                        Console.WriteLine($"Parking cost for parking lot id [{parkingTransaction.ParkingLotId}]: [{parkingCost}]");
                     }
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Response from Payment Service: [{responseContent}]");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Error in {nameof(TransactionService)}.{nameof(TransactionWorker)}.{nameof(ExecuteAsync)}: [{ex.Message}]");
+                    _logger.LogError(ex, $"Error in {nameof(TransactionService)}.{nameof(TransactionWorker)}.{nameof(ExecuteAsync)}: [{ex.Message}]");
                 }
 
-                //TODO: move setting to appsettings
-                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                await Task.Delay(TimeSpan.FromSeconds(_transactionWorkerSettings.ReadDelayInSecs));
             }
         }
+
+        #region Private Methods
+        private async Task<IEnumerable<ParkingTransactionDto>> GetParkingTransactions()
+        {
+            var response = await _httpClient.GetAsync($"http://parking-service/api/Parking/GetParkingTransactions?maxCreationDate={DateTime.Now/*.ToString("dd-MM-yyyy HH:mm:ss")*/}");
+            if (await response.HandleResponseError(1))
+            {
+                return Enumerable.Empty<ParkingTransactionDto>();
+            }
+
+            var responseContent = await response.Content.ReadFromJsonAsync<IEnumerable<ParkingTransactionDto>>();
+            return responseContent;
+        }
+
+        private async Task<double> CalculateParkingCost(ParkingTransactionDto parkingTransaction)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"http://payment-service/api/Payment/CalculateParkingCost", JsonConvert.SerializeObject(parkingTransaction));
+                await response.HandleResponseError(1);
+                if (await response.HandleResponseError(1))
+                {
+                    return 0;
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                if (!double.TryParse(responseContent, out var parsedContentAsDouble))
+                {
+                    _logger.LogError($"Error in parsing {nameof(CalculateParkingCost)} result: [{responseContent}] into double...");
+                    return 0;
+                }
+                Console.WriteLine($"Response from Payment Service: [{responseContent}]");
+                return parsedContentAsDouble;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in {nameof(TransactionService)}.{nameof(TransactionWorker)}.{nameof(ExecuteAsync)}: [{ex.Message}]");
+                return 0;
+            }
+        }
+        #endregion Private Methods
     }
 }
