@@ -77,7 +77,7 @@ namespace PaymentService.Migrations
                 nullable: false,
                 defaultValue: 0.0);
 
-            // Delete products first since they rely on categories
+            // Delete ParkingLots first since they rely on TariffsPerHour
             migrationBuilder.DeleteData(
                 table: "ParkingLots",
                 keyColumn: "ParkingLotId",
@@ -95,7 +95,7 @@ namespace PaymentService.Migrations
                 keyColumn: "ParkingLotId",
                 keyValue: 3);
 
-            // Then delete categories
+            // Then delete TariffsPerHour
             migrationBuilder.DeleteData(
                 table: "TariffsPerHour",
                 keyColumn: "Id",

@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using PaymentService;
 using PaymentService.DbContexts;
+using PaymentService.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<PaymentContext>();
+builder.Services.AddOptions<TariffOverrideParseSettings>()
+    .Bind(builder.Configuration.GetSection(TariffOverrideParseSettings.SectionName));
+builder.Services.AddSingleton<ParkingPaymentCalculator>();
 
 var app = builder.Build();
 

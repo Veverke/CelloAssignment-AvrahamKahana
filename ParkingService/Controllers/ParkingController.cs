@@ -51,9 +51,13 @@ namespace ParkingService.Controllers
                     dbContext.Metadata.Add(metadataRecord);
                 }
 
-                parkingTransactions = dbContext.ParkingTransactions.Where(p => p.CreationTime < maxCreationDate && p.CreationTime >= metadataRecord.LastRead).ToList();
+                parkingTransactions = dbContext.ParkingTransactions
+                    .Where(p =>
+                        p.CreationTime < maxCreationDate &&
+                        p.CreationTime >= metadataRecord.LastRead)
+                    .ToList();
                 var now = DateTime.Now;
-                _logger.LogInformation($"[{parkingTransactions.Count()}] parking transactions fetched for max creation date as [{maxCreationDate.ToString("dd/MM/yyyy HH:mm:ss")}] Metadata last read changed from [{metadataRecord.LastRead}] to [{now}]...");
+                _logger.LogInformation($"[{parkingTransactions.Count()}] parking transactions fetched for max creation date: [{maxCreationDate.ToString("dd/MM/yyyy HH:mm:ss")}] Metadata last read changed from [{metadataRecord.LastRead}] to [{now}]...");
                 metadataRecord.LastRead = now;
 
                 dbContext.SaveChanges();

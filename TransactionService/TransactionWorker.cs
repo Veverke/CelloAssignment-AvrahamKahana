@@ -3,7 +3,6 @@ using Contracts;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System.Net.Http.Json;
 using TransactionService.Settings;
 
@@ -47,7 +46,7 @@ namespace TransactionService
         #region Private Methods
         private async Task<IEnumerable<ParkingTransactionDto>> GetParkingTransactions()
         {
-            var response = await _httpClient.GetAsync($"http://parking-service/api/Parking/GetParkingTransactions?maxCreationDate={DateTime.Now/*.ToString("dd-MM-yyyy HH:mm:ss")*/}");
+            var response = await _httpClient.GetAsync($"http://parking-service/api/Parking/GetParkingTransactions?maxCreationDate={DateTime.Now}");
             if (await response.HandleResponseError(1))
             {
                 return Enumerable.Empty<ParkingTransactionDto>();
@@ -61,7 +60,7 @@ namespace TransactionService
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"http://payment-service/api/Payment/CalculateParkingCost", JsonConvert.SerializeObject(parkingTransaction));
+                var response = await _httpClient.PostAsJsonAsync($"http://payment-service/api/Payment/CalculateParkingCost", parkingTransaction);
                 await response.HandleResponseError(1);
                 if (await response.HandleResponseError(1))
                 {
