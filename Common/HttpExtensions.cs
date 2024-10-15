@@ -8,9 +8,6 @@
             {
                 var responseError = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"Http request error: [{(int)response.StatusCode}: {response.StatusCode}] {responseError} uri: [{response.RequestMessage.RequestUri}]");
-
-                //TODO: move setting to appsettings
-                await Task.Delay(TimeSpan.FromSeconds(errorDelayInSecs));
                 return true;
             }
 

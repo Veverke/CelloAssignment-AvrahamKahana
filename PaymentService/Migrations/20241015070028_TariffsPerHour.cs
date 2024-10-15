@@ -8,6 +8,8 @@ namespace PaymentService.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            //TODO: the 4 parking lot models + each of its special tariff logic come already added to the database via some of my EF migrations.
+            //In order to browse the database, you can use Visual Studio SQL Server Explorer, and connect to sql-server,1433, user sa, password StrongPassword123!
             migrationBuilder.DropForeignKey(
                 name: "FK_TariffPerHour_ParkingLots_ParkingLotId",
                 table: "TariffPerHour");

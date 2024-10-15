@@ -1,8 +1,10 @@
 ﻿using Common;
 using Contracts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using ParkingService.DbContexts;
 using ParkingService.DbContexts.Models;
+using ParkingService.Settings;
 
 namespace ParkingService.Controllers
 {
@@ -11,10 +13,12 @@ namespace ParkingService.Controllers
     public class ParkingController : ControllerBase
     {
         private readonly ILogger<ParkingController> _logger;
+        private readonly ParkingControllerSettings _parkingControllerSettings;
 
-        public ParkingController(ILogger<ParkingController> logger)
+        public ParkingController(ILogger<ParkingController> logger, IOptions<ParkingControllerSettings> parkingControllerSettings)
         {
             _logger = logger;
+            _parkingControllerSettings = parkingControllerSettings?.Value;
         }
 
         [HttpPost]
@@ -35,7 +39,7 @@ namespace ParkingService.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ParkingTransaction>> GetParkingTransactions()
+        public async Task<IEnumerable<ParkingTransaction>> GetParkingTransactions(int batchItemsLimit)
         {
             using var dbContext = new ParkingContext();
             using var transaction = dbContext.Database.BeginTransaction();
@@ -46,11 +50,15 @@ namespace ParkingService.Controllers
 
             try
             {
+                //TODO: transactions that fail to process are reset to status => New and have their LastExecutionAttempt field set to the time the execution took place, ensuring that the Transaction Worker will not fetch transactions that were processed in the last 30 mins)
                 parkingTransactions = dbContext.ParkingTransactions
-                    .Where(p => p.Status == ParkingTransactionStatus.New
-                    ).ToList();
+                    .Where(p => p.Status == ParkingTransactionStatus.New &&
+                                (DateTime.Now - p.LastExecutionAttempt) >= TimeSpan.FromMinutes(_parkingControllerSettings.TransactionNextAttemptRetryInMins)
+                    )
+                    .Take(batchItemsLimit)
+                    .ToList();
 
-                _logger.LogInformation($"[{parkingTransactions.Count()}] parking transactions fetched...");
+                _logger.LogInformation($"[{parkingTransactions.Count()}] parking transactions fetched... batch items limit: [{batchItemsLimit}]");
 
                 foreach (var parkingTransaction in parkingTransactions)
                 {
@@ -103,6 +111,7 @@ namespace ParkingService.Controllers
                 }
 
                 matchingTransaction.Status = status;
+                matchingTransaction.LastExecutionAttempt = DateTime.Now;
                 _logger.LogInformation($"Updated processing parking transaction: [{matchingTransaction}]");
                 return await dbContext.SaveChangesAsync() > 0;
 

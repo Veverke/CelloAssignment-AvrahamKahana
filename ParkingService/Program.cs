@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ParkingService.DbContexts;
+using ParkingService.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ParkingContext>();
+builder.Services.AddOptions<ParkingControllerSettings>()
+    .Bind(builder.Configuration.GetSection(ParkingControllerSettings.SectionName));
 
 var app = builder.Build();
 

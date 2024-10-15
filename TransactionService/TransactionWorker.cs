@@ -8,6 +8,7 @@ using TransactionService.Settings;
 
 namespace TransactionService
 {
+    //TODO: this is the "internal timer for processing transactions"
     public class TransactionWorker : BackgroundService
     {
         private readonly ILogger<TransactionWorker> _logger;
@@ -25,8 +26,7 @@ namespace TransactionService
             {
                 try
                 {
-                    //TODO: handle unresponsiveness, retry mechanisms...
-                    var parkingTransactions = await GetParkingTransactions();
+                    var parkingTransactions = await GetParkingTransactions(_transactionWorkerSettings.BatchItemsLimit);
                     //TODO: Parallel foreach
                     foreach (var parkingTransaction in parkingTransactions)
                     {
@@ -53,16 +53,32 @@ namespace TransactionService
         }
 
         #region Private Methods
-        private async Task<IEnumerable<ParkingTransactionDto>> GetParkingTransactions()
+        private async Task<IEnumerable<ParkingTransactionDto>> GetParkingTransactions(int batchItemsLimit)
         {
-            var response = await _httpClient.GetAsync($"http://parking-service/api/Parking/GetParkingTransactions");
-            if (await response.HandleResponseError(1))
+            //TODO: example of exponential retry strategy. I could/should be using Polly instead.
+            for (var i = 0; i < _transactionWorkerSettings.MaxRetries; i++)
             {
-                return Enumerable.Empty<ParkingTransactionDto>();
+                try
+                {
+                    var response = await _httpClient.GetAsync($"http://parking-service/api/Parking/GetParkingTransactions?batchItemsLimit={batchItemsLimit}");
+                    if (await response.HandleResponseError(1))
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(Math.Pow(1, 2)));
+                        continue;
+                    }
+
+                    var responseContent = await response.Content.ReadFromJsonAsync<IEnumerable<ParkingTransactionDto>>();
+                    return responseContent;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed getting parking trasanctions: attempt {i + 1} out of {_transactionWorkerSettings.MaxRetries}...");
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(Math.Pow(1, 2)));
             }
 
-            var responseContent = await response.Content.ReadFromJsonAsync<IEnumerable<ParkingTransactionDto>>();
-            return responseContent;
+            return Enumerable.Empty<ParkingTransactionDto>();
         }
 
         private async Task<InvoiceDto> CalculateParkingCost(ParkingTransactionDto parkingTransaction)
