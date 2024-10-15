@@ -4,11 +4,10 @@
     {
         public int ParkingLotId { get; set; }
         public List<TariffPerHour> TariffsPerInitialHours { get; set; }
-        public double TariffPerAdditionalHour { get; set; }
         public double MaxTariff { get; set; }
         public double MinTariff { get; set; }
 
-        //Format: starting hour, ending hour, tariff. Value delimiter: , Item delimiter: -
+        //Format: starting hour, ending hour, days span, tariff. Value delimiter: , Item delimiter: -
         public string SpecialHoursTariffOverride { get; set; }
 
         public ParkingLot()
