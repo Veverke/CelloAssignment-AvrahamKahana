@@ -67,15 +67,18 @@ namespace PaymentService
             }
 
             //apply cost override, if present
-            var overrideTariffs = _parseTariffOverride(parkingLot.SpecialHoursTariffOverride);
-            foreach (var overrideTariff in overrideTariffs)
+            if (!string.IsNullOrEmpty(parkingLot.SpecialHoursTariffOverride))
             {
-                if (parkingTransaction.GateOpened.Hour >= overrideTariff.startHour &&
-                    parkingTransaction.GateOpened.Hour <= overrideTariff.endHour)
+                var overrideTariffs = _parseTariffOverride(parkingLot.SpecialHoursTariffOverride);
+                foreach (var overrideTariff in overrideTariffs)
                 {
-                    _logger.LogInformation($"Cost override rule existent for start hour: [{overrideTariff.startHour}] end hour: [{overrideTariff.endHour}]. Changed from [{parkingCost}] to [{overrideTariff.tariff}]");
-                    parkingCost = overrideTariff.tariff;
-                    break;
+                    if (parkingTransaction.GateOpened.Hour >= overrideTariff.startHour &&
+                        parkingTransaction.GateOpened.Hour <= overrideTariff.endHour)
+                    {
+                        _logger.LogInformation($"Cost override rule existent for start hour: [{overrideTariff.startHour}] end hour: [{overrideTariff.endHour}]. Changed from [{parkingCost}] to [{overrideTariff.tariff}]");
+                        parkingCost = overrideTariff.tariff;
+                        break;
+                    }
                 }
             }
 

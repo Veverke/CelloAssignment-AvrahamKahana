@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Common;
+using Contracts;
+using Microsoft.AspNetCore.Mvc;
 using ParkingService.DbContexts;
 using ParkingService.DbContexts.Models;
 
@@ -33,7 +35,7 @@ namespace ParkingService.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<ParkingTransaction>> GetParkingTransactions(DateTime maxCreationDate)
+        public async Task<IEnumerable<ParkingTransaction>> GetParkingTransactions()
         {
             using var dbContext = new ParkingContext();
             using var transaction = dbContext.Database.BeginTransaction();
@@ -44,21 +46,16 @@ namespace ParkingService.Controllers
 
             try
             {
-                var metadataRecord = dbContext.Metadata.FirstOrDefault();
-                if (metadataRecord is null)
-                {
-                    metadataRecord = new Metadata { LastRead = DateTime.MinValue };
-                    dbContext.Metadata.Add(metadataRecord);
-                }
-
                 parkingTransactions = dbContext.ParkingTransactions
-                    .Where(p =>
-                        p.CreationTime < maxCreationDate &&
-                        p.CreationTime >= metadataRecord.LastRead)
-                    .ToList();
-                var now = DateTime.Now;
-                _logger.LogInformation($"[{parkingTransactions.Count()}] parking transactions fetched for max creation date: [{maxCreationDate.ToString("dd/MM/yyyy HH:mm:ss")}] Metadata last read changed from [{metadataRecord.LastRead}] to [{now}]...");
-                metadataRecord.LastRead = now;
+                    .Where(p => p.Status == ParkingTransactionStatus.New
+                    ).ToList();
+
+                _logger.LogInformation($"[{parkingTransactions.Count()}] parking transactions fetched...");
+
+                foreach (var parkingTransaction in parkingTransactions)
+                {
+                    parkingTransaction.Status = ParkingTransactionStatus.Processing;
+                }
 
                 dbContext.SaveChanges();
 
@@ -73,6 +70,49 @@ namespace ParkingService.Controllers
             #endregion Db Transaction
 
             return parkingTransactions;
+        }
+
+        [HttpPost]
+        public async Task<bool> CompleteParkingTransaction([FromBody] ParkingTransactionDto parkingTrasaction)
+        {
+            return await _updateParkingTransactionStatus(parkingTrasaction, ParkingTransactionStatus.Completed);
+        }
+
+        [HttpPost]
+        public async Task<bool> ResetParkingTransaction([FromBody] ParkingTransactionDto parkingTrasaction)
+        {
+            return await _updateParkingTransactionStatus(parkingTrasaction, ParkingTransactionStatus.New);
+        }
+
+        private async Task<bool> _updateParkingTransactionStatus(ParkingTransactionDto parkingTransaction, ParkingTransactionStatus status)
+        {
+            try
+            {
+                using var dbContext = new ParkingContext();
+                var matchingTransaction = dbContext.ParkingTransactions
+                    .FirstOrDefault(p =>
+                        p.ParkingLotId == parkingTransaction.ParkingLotId &&
+                        p.CustomerId == parkingTransaction.CustomerId &&
+                        p.GateOpened == parkingTransaction.GateOpened &&
+                        p.GateClosed == parkingTransaction.GateClosed);
+
+                if (matchingTransaction is null)
+                {
+                    _logger.LogError($"No matching transaction found in {nameof(CompleteParkingTransaction)} for transaction: [{parkingTransaction}]");
+                    return false;
+                }
+
+                matchingTransaction.Status = status;
+                _logger.LogInformation($"Updated processing parking transaction: [{matchingTransaction}]");
+                return await dbContext.SaveChangesAsync() > 0;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in {nameof(_updateParkingTransactionStatus)}: {ex.Message}");
+                return false;
+
+            }
         }
     }
 }

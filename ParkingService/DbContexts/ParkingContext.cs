@@ -6,7 +6,6 @@ namespace ParkingService.DbContexts
     public class ParkingContext : DbContext
     {
         public DbSet<ParkingTransaction> ParkingTransactions { get; set; }
-        public DbSet<Metadata> Metadata { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -17,9 +16,6 @@ namespace ParkingService.DbContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ParkingTransaction>()
-                .HasKey(p => p.Id);
-
-            modelBuilder.Entity<Metadata>()
                 .HasKey(p => p.Id);
 
             base.OnModelCreating(modelBuilder);

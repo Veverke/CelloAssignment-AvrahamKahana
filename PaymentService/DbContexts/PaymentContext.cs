@@ -7,6 +7,7 @@ namespace PaymentService.DbContexts
     {
         public DbSet<ParkingLot> ParkingLots { get; set; }
         public DbSet<TariffPerHour> TariffsPerHour { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -26,6 +27,16 @@ namespace PaymentService.DbContexts
 
             modelBuilder.Entity<TariffPerHour>()
                 .HasKey(p => p.Id);
+
+            modelBuilder.HasSequence<int>("InvoiceIdSequence");
+
+            modelBuilder.Entity<Invoice>()
+                .Property(i => i.Id)
+                .HasDefaultValueSql("NEXT VALUE FOR InvoiceIdSequence")
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Invoice>()
+                .HasKey(p => new { p.CustomerId, p.ParkingLotId, p.GateOpened, p.GateClosed });
 
             base.OnModelCreating(modelBuilder);
         }

@@ -25,12 +25,21 @@ namespace TransactionService
             {
                 try
                 {
+                    //TODO: handle unresponsiveness, retry mechanisms...
                     var parkingTransactions = await GetParkingTransactions();
                     //TODO: Parallel foreach
                     foreach (var parkingTransaction in parkingTransactions)
                     {
-                        var parkingCost = await CalculateParkingCost(parkingTransaction);
-                        Console.WriteLine($"Parking cost for parking lot id [{parkingTransaction.ParkingLotId}]: [{parkingCost}]");
+                        try
+                        {
+                            var invoiceDto = await CalculateParkingCost(parkingTransaction);
+                            Console.WriteLine($"Parking cost for parking lot id [{parkingTransaction.ParkingLotId}]: [{invoiceDto?.Charged}]");
+
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, $"Error in processing transaction [{parkingTransaction}]");
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -46,7 +55,7 @@ namespace TransactionService
         #region Private Methods
         private async Task<IEnumerable<ParkingTransactionDto>> GetParkingTransactions()
         {
-            var response = await _httpClient.GetAsync($"http://parking-service/api/Parking/GetParkingTransactions?maxCreationDate={DateTime.Now}");
+            var response = await _httpClient.GetAsync($"http://parking-service/api/Parking/GetParkingTransactions");
             if (await response.HandleResponseError(1))
             {
                 return Enumerable.Empty<ParkingTransactionDto>();
@@ -56,7 +65,7 @@ namespace TransactionService
             return responseContent;
         }
 
-        private async Task<double> CalculateParkingCost(ParkingTransactionDto parkingTransaction)
+        private async Task<InvoiceDto> CalculateParkingCost(ParkingTransactionDto parkingTransaction)
         {
             try
             {
@@ -64,22 +73,16 @@ namespace TransactionService
                 await response.HandleResponseError(1);
                 if (await response.HandleResponseError(1))
                 {
-                    return 0;
+                    return null;
                 }
 
-                var responseContent = await response.Content.ReadAsStringAsync();
-                if (!double.TryParse(responseContent, out var parsedContentAsDouble))
-                {
-                    _logger.LogError($"Error in parsing {nameof(CalculateParkingCost)} result: [{responseContent}] into double...");
-                    return 0;
-                }
-                Console.WriteLine($"Response from Payment Service: [{responseContent}]");
-                return parsedContentAsDouble;
+                var invoiceDto = await response.Content.ReadFromJsonAsync<InvoiceDto>();
+                return invoiceDto;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error in {nameof(TransactionService)}.{nameof(TransactionWorker)}.{nameof(ExecuteAsync)}: [{ex.Message}]");
-                return 0;
+                return null;
             }
         }
         #endregion Private Methods

@@ -12,8 +12,8 @@ using ParkingService.DbContexts;
 namespace ParkingService.Migrations
 {
     [DbContext(typeof(ParkingContext))]
-    [Migration("20241015003308_MetadataPK")]
-    partial class MetadataPK
+    [Migration("20241015141759_RemoveMetadataTable")]
+    partial class RemoveMetadataTable
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,22 +24,6 @@ namespace ParkingService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("ParkingService.DbContexts.Models.Metadata", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<DateTime>("LastRead")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Metadata");
-                });
-
             modelBuilder.Entity("ParkingService.DbContexts.Models.ParkingTransaction", b =>
                 {
                     b.Property<long>("Id")
@@ -47,9 +31,6 @@ namespace ParkingService.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<DateTime>("CreationTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
@@ -61,6 +42,9 @@ namespace ParkingService.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("ParkingLotId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

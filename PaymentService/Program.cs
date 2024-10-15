@@ -14,6 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<PaymentContext>();
 builder.Services.AddOptions<TariffOverrideParseSettings>()
     .Bind(builder.Configuration.GetSection(TariffOverrideParseSettings.SectionName));
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ParkingPaymentCalculator>();
 
 var app = builder.Build();
