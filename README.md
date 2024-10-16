@@ -1,4 +1,6 @@
 # CelloAssignment-AvrahamKahana
+![Cello-DesignOverview](https://github.com/user-attachments/assets/87ebc00c-9181-4228-9279-0fcc7974c7a9)
+
 
 # Monitoring
 I myself did not play with monotoring infrastructure other than logging (timestamped Serilogs with daily rolling interval), but I had a bit exposure to Open Telemetry ideas/concepts in both Sepio and Startup Booster.
